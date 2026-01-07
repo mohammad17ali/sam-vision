@@ -1,0 +1,13 @@
+torch>=2.0.0
+torchvision
+transformers>=4.40.0
+pillow
+numpy
+matplotlib
+opencv-python
+accelerate
+einops
+decord
+timm
+git+https://github.com/facebookresearch/sam3.git
+
