@@ -1,6 +1,7 @@
 """
 Simple SAM3 Exploration App
 Demonstrates the capabilities of Meta's SAM3 model for image and video segmentation
+
 """
 
 import torch
@@ -134,19 +135,28 @@ class SAM3Explorer:
         if isinstance(results, list):
             # Multiple prompts case - visualize first one
             masks = results[0]["masks"]
+            # Move to CPU if on CUDA
+            masks = masks.cpu() if hasattr(masks, 'cpu') else masks
         elif isinstance(results, dict) and "pass1" in results:
             # Sequential refinement - combine masks from both passes
             masks1 = results["pass1"]["masks"]
             masks2 = results["pass2"]["masks"]
+            # Move to CPU if on CUDA
+            masks1 = masks1.cpu() if hasattr(masks1, 'cpu') else masks1
+            masks2 = masks2.cpu() if hasattr(masks2, 'cpu') else masks2
             masks = np.concatenate([masks1, masks2], axis=0) if len(masks2) > 0 else masks1
         else:
             masks = results["masks"]
+            # Move to CPU if on CUDA
+            masks = masks.cpu() if hasattr(masks, 'cpu') else masks
         
         if len(masks) == 0:
             print(f"  No masks to visualize")
             return
         
         image = image.convert("RGBA")
+        # Move masks to CPU if on CUDA device
+        masks = masks.cpu() if hasattr(masks, 'cpu') else masks
         masks = np.asarray(masks)
         
         # Ensure masks are numpy arrays with correct shape
@@ -194,6 +204,17 @@ def main():
     print("\nThis app explores the capabilities of Meta's SAM3 model")
     print("SAM3: Unified foundation model for promptable segmentation\n")
     
+    print("⚠️  AUTHENTICATION REQUIRED")
+    print("-" * 60)
+    print("SAM3 is a gated model. If you haven't authenticated yet:\n")
+    print("Step 1: Accept the license")
+    print("  → Visit: https://huggingface.co/facebook/sam3")
+    print("  → Click 'Access repository' and accept license\n")
+    print("Step 2: Authenticate locally")
+    print("  → Run: huggingface-cli login")
+    print("  → Or: export HF_TOKEN='your_token_here'\n")
+    print("-" * 60 + "\n")
+    
     # Initialize explorer
     try:
         explorer = SAM3Explorer()
@@ -202,6 +223,12 @@ def main():
         return
     except Exception as e:
         print(f"✗ Failed to initialize SAM3: {e}")
+        if "403" in str(e) or "Gated" in str(e) or "token" in str(e).lower():
+            print("\n⚠️  Authentication Error")
+            print("Make sure to:")
+            print("  1. Accept the license: https://huggingface.co/facebook/sam3")
+            print("  2. Authenticate: huggingface-cli login")
+            print("  3. Or set token: export HF_TOKEN='your_token'")
         return
     
     # Download sample image for testing

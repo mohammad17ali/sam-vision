@@ -18,6 +18,40 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## HuggingFace Authentication
+
+SAM3 is a **gated model** - you need to authenticate with HuggingFace:
+
+### Option 1: Use HuggingFace CLI (Recommended)
+
+```bash
+huggingface-cli login
+```
+
+Then enter your HuggingFace token (get it from https://huggingface.co/settings/tokens)
+
+### Option 2: Use environment variable
+
+```bash
+export HF_TOKEN="your_huggingface_token"
+```
+
+### Option 3: SSH Key
+
+```bash
+# Generate SSH key if you don't have one
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# Add public key to HuggingFace (https://huggingface.co/settings/keys)
+# Then authenticate
+huggingface-cli login --token $HF_TOKEN
+```
+
+**Important**: Make sure to accept the SAM3 model license on HuggingFace:
+1. Visit https://huggingface.co/facebook/sam3
+2. Click "Access repository"
+3. Accept the license agreement
+
 ## What is SAM3?
 
 SAM3 is Meta's latest foundation model for:
