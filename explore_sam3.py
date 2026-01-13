@@ -163,6 +163,16 @@ class SAM3Explorer:
         if masks.ndim == 2:
             masks = np.expand_dims(masks, axis=0)
         
+        # Flatten extra dimensions and reshape to (n_masks, height, width)
+        original_shape = masks.shape
+        if masks.ndim > 3:
+            # Flatten all dimensions except last and reshape
+            masks = masks.reshape(-1, original_shape[-1])
+            masks = np.expand_dims(masks, axis=1)
+        elif masks.ndim == 3 and masks.shape[1] == 1:
+            # Shape is (n, 1, width) - squeeze middle dimension
+            masks = masks.squeeze(1)
+        
         n_masks = masks.shape[0]
         cmap = matplotlib.colormaps.get_cmap("rainbow").resampled(max(n_masks, 1))
         colors = [
@@ -171,7 +181,16 @@ class SAM3Explorer:
         ]
         
         for mask, color in zip(masks, colors):
-            mask_uint8 = (mask * 255).astype(np.uint8) if mask.max() <= 1.0 else mask.astype(np.uint8)
+            # Ensure mask is 2D (height, width)
+            if mask.ndim != 2:
+                mask = mask.squeeze()
+            
+            # Resize mask to match image size if needed
+            mask_pil = Image.fromarray((mask * 255).astype(np.uint8) if mask.max() <= 1.0 else mask.astype(np.uint8))
+            if mask_pil.size != image.size:
+                mask_pil = mask_pil.resize(image.size, Image.LANCZOS)
+            
+            mask_uint8 = np.asarray(mask_pil)
             mask_img = Image.fromarray(mask_uint8)
             overlay = Image.new("RGBA", image.size, color + (0,))
             alpha = mask_img.point(lambda v: int(v * 0.5))
